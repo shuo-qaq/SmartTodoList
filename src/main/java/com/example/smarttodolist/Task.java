@@ -11,8 +11,8 @@ public class Task {
     private final StringProperty priority;
     private final StringProperty completed;
 
-    public Task(String title, String description, String dueDate,
-                String category, String priority, String completed) {
+    // === 构造函数 ===
+    public Task(String title, String description, String dueDate, String category, String priority, String completed) {
         this.title = new SimpleStringProperty(title);
         this.description = new SimpleStringProperty(description);
         this.dueDate = new SimpleStringProperty(dueDate);
@@ -21,7 +21,7 @@ public class Task {
         this.completed = new SimpleStringProperty(completed);
     }
 
-    // === Property ===
+    // === Getter / Setter for Property ===
     public StringProperty titleProperty() { return title; }
     public StringProperty descriptionProperty() { return description; }
     public StringProperty dueDateProperty() { return dueDate; }
@@ -29,22 +29,27 @@ public class Task {
     public StringProperty priorityProperty() { return priority; }
     public StringProperty completedProperty() { return completed; }
 
-    // === Getter / Setter ===
+    // === 普通 Getter / Setter （Gson 用）===
     public String getTitle() { return title.get(); }
-    public void setTitle(String t) { title.set(t); }
+    public void setTitle(String value) { title.set(value); }
 
     public String getDescription() { return description.get(); }
-    public void setDescription(String d) { description.set(d); }
+    public void setDescription(String value) { description.set(value); }
 
     public String getDueDate() { return dueDate.get(); }
-    public void setDueDate(String d) { dueDate.set(d); }
+    public void setDueDate(String value) { dueDate.set(value); }
 
     public String getCategory() { return category.get(); }
-    public void setCategory(String c) { category.set(c); }
+    public void setCategory(String value) { category.set(value); }
 
     public String getPriority() { return priority.get(); }
-    public void setPriority(String p) { priority.set(p); }
+    public void setPriority(String value) { priority.set(value); }
 
     public String getCompleted() { return completed.get(); }
-    public void setCompleted(String c) { completed.set(c); }
+    public void setCompleted(String value) { completed.set(value); }
+
+    // === Gson 需要的无参构造函数 ===
+    public Task() {
+        this("", "", "", "", "", "No");
+    }
 }

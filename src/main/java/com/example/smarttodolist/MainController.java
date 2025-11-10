@@ -1,9 +1,18 @@
 package com.example.smarttodolist;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.FileChooser;
+
+import java.io.File;
+import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.util.List;
 
 public class MainController {
 
@@ -32,9 +41,10 @@ public class MainController {
     // === 数据源 ===
     private final ObservableList<Task> taskList = FXCollections.observableArrayList();
 
+    // 初始化
     @FXML
     private void initialize() {
-        // 列绑定
+        // 绑定列
         taskNameColumn.setCellValueFactory(c -> c.getValue().titleProperty());
         descriptionColumn.setCellValueFactory(c -> c.getValue().descriptionProperty());
         dueDateColumn.setCellValueFactory(c -> c.getValue().dueDateProperty());
@@ -43,7 +53,7 @@ public class MainController {
         completedColumn.setCellValueFactory(c -> c.getValue().completedProperty());
         taskTable.setItems(taskList);
 
-        // 初始化下拉框
+        // 初始化 ChoiceBox
         categoryChoiceBox.setItems(FXCollections.observableArrayList("Work", "Study", "Personal", "Other"));
         categoryChoiceBox.setValue("Work");
 
@@ -147,12 +157,67 @@ public class MainController {
     // === 菜单 ===
     @FXML private void handleMenuExit() { System.exit(0); }
     @FXML private void handleMenuNew() { taskList.clear(); }
-    @FXML private void handleMenuOpen() { showInfo("Open", "Feature under development."); }
-    @FXML private void handleMenuAbout() {
-        showInfo("About", "Smart Todo List v3.0\nDeveloped by Lyndon White\nEnhanced JavaFX Todo App.");
+
+    // === 保存 ===
+    @FXML
+    private void handleMenuSave() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Task File");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            try {
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                List<TaskData> plainTasks = taskList.stream()
+                        .map(t -> new TaskData(
+                                t.getTitle(),
+                                t.getDescription(),
+                                t.getDueDate(),
+                                t.getCategory(),
+                                t.getPriority(),
+                                t.getCompleted()))
+                        .toList();
+                String json = gson.toJson(plainTasks);
+                Files.writeString(file.toPath(), json);
+                showInfo("Success", "Tasks saved successfully!");
+            } catch (Exception e) {
+                showAlert("Failed to save file: " + e.getMessage());
+            }
+        }
     }
 
-    // === 工具方法 ===
+    // === 打开 ===
+    @FXML
+    private void handleMenuOpen() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Task File");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            try {
+                String json = Files.readString(file.toPath());
+                Gson gson = new Gson();
+                Type type = new TypeToken<List<TaskData>>() {}.getType();
+                List<TaskData> plainTasks = gson.fromJson(json, type);
+
+                taskList.clear();
+                for (TaskData td : plainTasks) {
+                    taskList.add(new Task(td.getTitle(), td.getDescription(), td.getDueDate(),
+                            td.getCategory(), td.getPriority(), td.getCompleted()));
+                }
+
+                showInfo("Success", "Tasks loaded successfully!");
+            } catch (Exception e) {
+                showAlert("Failed to open file: " + e.getMessage());
+            }
+        }
+    }
+
+    @FXML private void handleMenuAbout() {
+        showInfo("About", "Smart Todo List v4.0\nDeveloped by Lyndon White\nNow with Save & Open Features.");
+    }
+
+    // === 辅助方法 ===
     private void clearInputs() {
         taskNameInput.clear();
         descriptionInput.clear();
